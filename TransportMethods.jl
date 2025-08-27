@@ -97,11 +97,11 @@ end
 
 function thermal_matrix(n,n_exit)
     if n==0
-        return Diagonal([i==1 ? 1.0 : 0.0 for i in 1:n_exit])
+        return Diagonal([i==1 ? 1.0 : 0.0 for i in 0:n_exit])
     end
-    ninv=n^-1
-    prob = [(ninv+1)^-(i+1)*ninv for i in 1:n_exit]
-    return Diagonal(prob)
+    
+    prob = [n^i / ((n+1)^(i+1)) for i in 0:n_exit]
+    return Matrix(Diagonal(prob))
 end
 
 #-----------------------------------------------------------------------------------------------
@@ -111,20 +111,35 @@ end
 T=200.0 # Tiempo final de la simulación
 dt=1.0 # Paso temporal considerado
 
-n_oscil=7 # Número de osciladores en la cadena. Mayor o igual a 2
-n_exit=5 # Número de exitaciones a considerar en los estados bosónicos
+n_oscil=4 # Número de osciladores en la cadena. Mayor o igual a 2
+n_exit=4 # Número de exitaciones a considerar en los estados bosónicos
 
 ω=5.0 # Frecuencia de oscilador armónico
 U=0.0 # Anarmonía
-λ=0.02 # Parámetro de interacción a primeros vecinos
-n1=0.3 # Ocupación media de reservorio 1
-n2=0.06 # Ocupación media de reservorio 2
-γ1=0.1 # Parametro de interacción con reservorio 1
-γ2=0.1 # Parametro de interacción con reservorio 2
+λ=0.01 # Parámetro de interacción a primeros vecinos
+n1=1.15 # Ocupación media de reservorio 1
+n2=0.09 # Ocupación media de reservorio 2
+γ1=0.1*2*pi # Parametro de interacción con reservorio 1
+γ2=0.1*2*pi # Parametro de interacción con reservorio 2
+
+n_prom = (n1 + n2)/2
+delta_n = (n1 - n2)/2
+
+e_1 = (4*λ^2*(γ1-γ2) + γ1*γ2^2 + (γ1^2)*γ2) /
+      ((4*λ^2 + γ1*γ2)*(γ1 + γ2))
+
+e_n = (4*λ^2*(γ1-γ2) + γ1*γ2^2 - (γ1^2)*γ2) /
+      ((4*λ^2 + γ1*γ2)*(γ1 + γ2))
+
+e_N = (4*λ^2*(γ1-γ2) - γ1*γ2^2 - (γ1^2)*γ2) /
+      ((4*λ^2 + γ1*γ2)*(γ1 + γ2))
+
+n_term1 = n_prom + e_1*delta_n
+n_termN = n_prom + e_N*delta_n
 
 # Algunos estados iniciales posibles.
 # thermalstate, empieza en estados térmicos variando linealmente en la cadena entre n_1 y n_2 (obs que esto creo que no corresponde a fourier)
-thermalstate=[thermal_matrix(n1+(n2-n1)*(j-1)/(n_oscil-1),n_exit) for j in 1:n_oscil]
+thermalstate=[thermal_matrix(n_term1+(n_termN-n_term1)*(j-1)/(n_oscil-1),n_exit) for j in 1:n_oscil]
 # zerostate, estado en que todo está inicialmente en 0
 zerostate=["0" for i in 1:n_oscil]
 
@@ -132,14 +147,45 @@ zerostate=["0" for i in 1:n_oscil]
 hist=TransportExperiment(zerostate, ω, U, λ, γ1, n1, γ2, n2, n_exit, T, dt; cutoff=1e-8, maxdim=40, verbose=true)
 hist
 
+hist_term=hist=TransportExperiment(thermalstate, ω, U, λ, γ1, n1, γ2, n2, n_exit, T, dt; cutoff=1e-8, maxdim=40, verbose=true)
+hist_term
+
 # Mide la ocupación sobre cada sitio para cada estado en la serie temporal
 occu=zeros(n_oscil,length(hist))
 for (k,state) in enumerate(hist)
     occu[:,k] .= real.(last.(measure(state,[N(i) for i in 1:n_oscil])))
 end
 
+
+# Crear vector de tiempos
+times = 0:dt:T
+
+# valores auxiliares
+
+
+e_1 = (4*λ^2*(γ1-γ2) + γ1*γ2^2 + (γ1^2)*γ2) /
+      ((4*λ^2 + γ1*γ2)*(γ1 + γ2))
+
+e_n = (4*λ^2*(γ1-γ2) + γ1*γ2^2 - (γ1^2)*γ2) /
+      ((4*λ^2 + γ1*γ2)*(γ1 + γ2))
+
+e_N = (4*λ^2*(γ1-γ2) - γ1*γ2^2 - (γ1^2)*γ2) /
+      ((4*λ^2 + γ1*γ2)*(γ1 + γ2))
+
+# Gráfico con todas las ocupaciones
+plot(times, transpose(occu), 
+     #label=["Sitio 1" "Sitio 2" "Sitio 3" "Sitio 4"],
+     xlabel="Tiempo",
+     ylabel="Número de ocupación",
+     title="Evolución temporal de la ocupación",
+     linewidth=2,)
+     #legend=:right)
+hline!([n_prom + e_1*delta_n], color=:red,   linestyle=:dot, label="")
+hline!([n_prom + e_n*delta_n], color=:black, linestyle=:dot, label="")
+hline!([n_prom + e_N*delta_n], color=:blue,  linestyle=:dot, label="")
+savefig("ocupaciones.png")
 # grafica las ocupaciones en un heatmap
-heatmap(1:n_oscil,0:dt:T,transpose(occu))
+
 
 #-----------------------------------------------------------------------------------------------
 ## Algunas simulaciones para ver que pasa con diferentes parámetros de cutoff, dt, maxdim, n_exit y el estado inicial.
