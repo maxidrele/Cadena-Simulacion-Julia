@@ -108,19 +108,21 @@ end
 ##  Para correr una simulación
 #-----------------------------------------------------------------------------------------------
 
-T=200.0 # Tiempo final de la simulación
-dt=1.0 # Paso temporal considerado
 
 n_oscil=4 # Número de osciladores en la cadena. Mayor o igual a 2
 n_exit=4 # Número de exitaciones a considerar en los estados bosónicos
 
 ω=5.0 # Frecuencia de oscilador armónico
-U=0.0 # Anarmonía
-λ=0.01 # Parámetro de interacción a primeros vecinos
+U=0.2 # Anarmonía
+λ=0.005 # Parámetro de interacción a primeros vecinos
 n1=1.15 # Ocupación media de reservorio 1
 n2=0.09 # Ocupación media de reservorio 2
-γ1=0.1*2*pi # Parametro de interacción con reservorio 1
-γ2=0.1*2*pi # Parametro de interacción con reservorio 2
+γ1=0.5 # Parametro de interacción con reservorio 1
+γ2=0.1 # Parametro de interacción con reservorio 2
+
+T=150/(1/γ1) # Tiempo final de la simulación
+dt=1.0 # Paso temporal considerado
+
 
 n_prom = (n1 + n2)/2
 delta_n = (n1 - n2)/2
