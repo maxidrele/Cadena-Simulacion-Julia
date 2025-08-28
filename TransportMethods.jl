@@ -115,10 +115,10 @@ end
 
 #Parametros
 
-T=10.0 # Tiempo final de la simulación
-dt=1.0 # Paso temporal considerado
+T=10000.0 # Tiempo final de la simulación
+dt=10.0 # Paso temporal considerado
 
-n_oscil=4 # Número de osciladores en la cadena. Mayor o igual a 2
+n_oscil=10 # Número de osciladores en la cadena. Mayor o igual a 2
 n_exit=4 # Número de exitaciones a considerar en los estados bosónicos
 
 ω=5.0 # Frecuencia de oscilador armónico
@@ -129,9 +129,14 @@ n2=0.09 # Ocupación media de reservorio 2
 γ1=0.5*(2*pi)^-1 # Parametro de interacción con reservorio 1
 γ2=0.5*(2*pi)^-1 # Parametro de interacción con reservorio 2
 
+e1 = ((4*λ^2)*(γ1-γ2) + γ1*γ2^2 + γ2*γ1^2)/((4*λ^2 + γ1*γ2)*(γ1+γ2))
+eN = ((4*λ^2)*(γ1-γ2) - γ1*γ2^2 - γ2*γ1^2)/((4*λ^2 + γ1*γ2)*(γ1+γ2))
+
+n_1 = (n1+n2)/2 + e1*(n1-n2)/2
+n_N = (n1+n2)/2 + eN*(n1-n2)/2
 # Algunos estados iniciales posibles.
 # thermalstate, empieza en estados térmicos variando linealmente en la cadena entre n_1 y n_2 (obs que esto creo que no corresponde a fourier)
-thermalstate=[thermal_matrix(n1+(n2-n1)*(j-1)/(n_oscil-1),n_exit) for j in 1:n_oscil]
+thermalstate=[thermal_matrix(n_1+(n_N-n_1)*(j-1)/(n_oscil-1),n_exit) for j in 1:n_oscil]
 # zerostate, estado en que todo está inicialmente en 0
 zerostate=["0" for i in 1:n_oscil]
 
