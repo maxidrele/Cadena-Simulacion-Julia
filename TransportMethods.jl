@@ -7,7 +7,7 @@ import ITensors: ITensor, state, inds, scalar
 import Tables: matrix, table
 import CSV: write, File
 
-using Plots
+# using Plots
 using TensorMixedStates
 using .Bosons: Boson, N, A
 using DataFrames
