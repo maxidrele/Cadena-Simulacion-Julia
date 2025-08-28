@@ -130,15 +130,23 @@ n2=0.09 # Ocupación media de reservorio 2
 γ2=0.5*(2*pi)^-1 # Parametro de interacción con reservorio 2
 
 e1 = ((4*λ^2)*(γ1-γ2) + γ1*γ2^2 + γ2*γ1^2)/((4*λ^2 + γ1*γ2)*(γ1+γ2))
+ej = ((4*λ^2)*(γ1-γ2) + γ1*γ2^2 - γ2*γ1^2)/((4*λ^2 + γ1*γ2)*(γ1+γ2))
 eN = ((4*λ^2)*(γ1-γ2) - γ1*γ2^2 - γ2*γ1^2)/((4*λ^2 + γ1*γ2)*(γ1+γ2))
 
 n_1 = (n1+n2)/2 + e1*(n1-n2)/2
+n_j = (n1+n2)/2 + ej*(n1-n2)/2
 n_N = (n1+n2)/2 + eN*(n1-n2)/2
 # Algunos estados iniciales posibles.
 # thermalstate, empieza en estados térmicos variando linealmente en la cadena entre n_1 y n_2 (obs que esto creo que no corresponde a fourier)
-thermalstate=[thermal_matrix(n_1+(n_N-n_1)*(j-1)/(n_oscil-1),n_exit) for j in 1:n_oscil]
+# Definir los estados iniciales
+thermalstate = [
+    j == 1 ? thermal_matrix(n_1, n_exit) :
+    j == n_oscil ? thermal_matrix(n_N, n_exit) :
+    thermal_matrix(n_j, n_exit)
+    for j in 1:n_oscil
+]
 # zerostate, estado en que todo está inicialmente en 0
-zerostate=["0" for i in 1:n_oscil]
+#zerostate=["0" for i in 1:n_oscil]
 
 ## Hace una corrida con los parámetros de arriba, guardando los estados en k*dt tal que 0<=k*dt<=T
 
