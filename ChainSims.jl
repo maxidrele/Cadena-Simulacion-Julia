@@ -2,7 +2,7 @@
 ## Requisitos
 #--------------------------------------------------------------------------------------------------------------------------------
 import Base: +, -
-import ITensors: inner, normalize
+import ITensorMPS: inner, normalize
 import TensorMixedStates: Limits, maxlinkdim, State, apply, approx_W, measure, norm, tdvp, truncate
 import Roots: find_zero
 
