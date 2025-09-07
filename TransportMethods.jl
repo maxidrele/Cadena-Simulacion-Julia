@@ -7,7 +7,7 @@ import ITensors: ITensor, state, inds, scalar
 import Tables: matrix, table
 import CSV: write, File
 
-# using Plots
+using Plots
 using TensorMixedStates
 using .Bosons: Boson, N, A
 using DataFrames
@@ -115,42 +115,42 @@ end
 
 #Parametros
 
-T=10000.0 # Tiempo final de la simulación
+T=100.0 # Tiempo final de la simulación
 dt=10.0 # Paso temporal considerado
 
-n_oscil=10 # Número de osciladores en la cadena. Mayor o igual a 2
+n_oscil=4 # Número de osciladores en la cadena. Mayor o igual a 2
 n_exit=4 # Número de exitaciones a considerar en los estados bosónicos
 
 ω=5.0 # Frecuencia de oscilador armónico
-U=0.2 # Anarmonía
-λ=0.007 # Parámetro de interacción a primeros vecinos
-n1=1.15 # Ocupación media de reservorio 1
-n2=0.09 # Ocupación media de reservorio 2
+ω_h = 3.0 # Frecuencia del reservorio 1
+ω_c = 2.0 # Frecuencia del reservorio 2
+U=0.05 # Anarmonía
+λ=0.02 # Parámetro de interacción a primeros vecinos
+n_h = 1/(exp(ω/ω_h)-1) # Ocupación media de reservorio 1
+n_c = 1/(exp(ω/ω_c)-1) # Ocupación media de reservorio 2
 γ1=0.5*(2*pi)^-1 # Parametro de interacción con reservorio 1
 γ2=0.5*(2*pi)^-1 # Parametro de interacción con reservorio 2
 
 e1 = ((4*λ^2)*(γ1-γ2) + γ1*γ2^2 + γ2*γ1^2)/((4*λ^2 + γ1*γ2)*(γ1+γ2))
-ej = ((4*λ^2)*(γ1-γ2) + γ1*γ2^2 - γ2*γ1^2)/((4*λ^2 + γ1*γ2)*(γ1+γ2))
+et = ((4*λ^2)*(γ1-γ2) + γ1*γ2^2 - γ2*γ1^2)/((4*λ^2 + γ1*γ2)*(γ1+γ2))
 eN = ((4*λ^2)*(γ1-γ2) - γ1*γ2^2 - γ2*γ1^2)/((4*λ^2 + γ1*γ2)*(γ1+γ2))
 
-n_1 = (n1+n2)/2 + e1*(n1-n2)/2
-n_j = (n1+n2)/2 + ej*(n1-n2)/2
-n_N = (n1+n2)/2 + eN*(n1-n2)/2
+n_1 = (n_h+n_c)/2 + (n_h-n_c)*e1/2
+n_t = (n_h+n_c)/2 + (n_h-n_c)*et/2
+n_N = (n_h+n_c)/2 + (n_h-n_c)*eN/2
 # Algunos estados iniciales posibles.
 # thermalstate, empieza en estados térmicos variando linealmente en la cadena entre n_1 y n_2 (obs que esto creo que no corresponde a fourier)
-# Definir los estados iniciales
-thermalstate = [
-    j == 1 ? thermal_matrix(n_1, n_exit) :
-    j == n_oscil ? thermal_matrix(n_N, n_exit) :
-    thermal_matrix(n_j, n_exit)
-    for j in 1:n_oscil
-]
+thermalstate=[
+    j == 1 ? thermal_matrix(n_1,n_exit) :
+    j == n_oscil ? thermal_matrix(n_N,n_exit) : 
+                    thermal_matrix(n_t,n_exit) 
+    for j in 1:n_oscil]
 # zerostate, estado en que todo está inicialmente en 0
-#zerostate=["0" for i in 1:n_oscil]
+
 
 ## Hace una corrida con los parámetros de arriba, guardando los estados en k*dt tal que 0<=k*dt<=T
 
-hist_termal=TransportExperiment(thermalstate, ω, U, λ, γ1, n1, γ2, n2, n_exit, T, dt; cutoff=1e-8, maxdim=40, verbose=true)
+hist_termal=TransportExperiment(thermalstate, ω, U, λ, γ1, n_h, γ2, n_c, n_exit, T, dt; cutoff=1e-8, maxdim=40, verbose=true)
 hist_termal
 
 
